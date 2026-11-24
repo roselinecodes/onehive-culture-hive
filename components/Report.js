@@ -26,7 +26,6 @@ export default function Report({ roleId, ids }) {
       <div className="rhead">
         <img className="l" src="/logo.png" alt="OneHive" />
         <div><h1>Candidate comparison</h1><div className="sub">{role.name} · {list.length} candidate{list.length === 1 ? '' : 's'} · {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</div></div>
-        <img className="s" src="/squiggle.png" alt="" />
       </div>
       <table>
         <thead><tr><th>Rank</th><th>Candidate</th><th>Fit</th>{role.pillars.map((p) => <th key={p.id}>{p.name}</th>)}<th>Status</th></tr></thead>

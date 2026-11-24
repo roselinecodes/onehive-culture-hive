@@ -15,7 +15,6 @@ export default function Login() {
   }
   return (
     <form className="login" onSubmit={go}>
-      <img className="sq" src="/squiggle.png" alt="" />
       <img src="/logo.png" alt="OneHive" />
       <div style={{ color: '#6f655d', fontSize: 14 }}>Hiring hive admin</div>
       <input type="email" placeholder="Email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus required />

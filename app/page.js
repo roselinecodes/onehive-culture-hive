@@ -9,9 +9,8 @@ export default async function Home() {
     <>
     <HiveBackground />
     <div className="hive">
-      <div className="top"><img className="logo" src="/logo.png" alt="OneHive" /></div>
+      <div className="top centred"><img className="logo" src="/logo.png" alt="OneHive" /></div>
       <div className="card hero">
-        <img className="squiggle" src="/squiggle.png" alt="" />
         <span className="kicker">Join the hive</span>
         <h1>Open challenges</h1>
         <p className="lead">OneHive builds AI-powered tools that help charities, social enterprises and young people thrive. Pick the role you are applying for to start its challenge.</p>

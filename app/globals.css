@@ -340,3 +340,14 @@ button,a,input,label{touch-action:manipulation}
 .foot{background:none;padding:0 12px calc(12px + env(safe-area-inset-bottom));pointer-events:none}
 .foot .in{pointer-events:auto;background:rgba(255,248,240,.9);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:999px;padding:8px 8px 8px 20px;box-shadow:0 10px 30px -18px rgba(37,32,29,.45)}
 .pv .foot{padding:0 0 12px}
+
+/* centred logo, no squiggle */
+.hive .top.centred{justify-content:center}
+.hive .top.centred .logo{height:38px}
+.hive .hero,.hive .done{padding-top:24px}
+.adm .actions{margin-right:0}
+
+.hive-bee .wing{transform-box:fill-box;transform-origin:50% 100%;animation:flap .12s ease-in-out infinite alternate}
+.hive-bee .wing.wb{transform-origin:50% 0%}
+@keyframes flap{from{transform:scaleY(1)}to{transform:scaleY(.35)}}
+@media (prefers-reduced-motion: reduce){.hive-bee{display:none}}

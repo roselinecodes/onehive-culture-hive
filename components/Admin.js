@@ -144,7 +144,6 @@ export default function Admin() {
 
   return (
     <div className="adm">
-      <img className="hdr-squig" src="/squiggle.png" alt="" />
       <header>
         <img className="logo" src="/logo.png" alt="OneHive" />
         <span className="sub">Hiring hive</span>

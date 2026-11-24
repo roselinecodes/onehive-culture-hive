@@ -24,7 +24,7 @@ export default function Challenge({ slug, questions: given, intro: givenIntro, r
   }, [state, preview]);
 
   if (preview) return <div className="hive" ref={ref} />;
-  if (error) return (<><HiveBackground /><div className="loading"><img src="/logo.png" alt="OneHive" /><img src="/squiggle.png" alt="" style={{ width: 260 }} /><div style={{ maxWidth: 420, textAlign: 'center' }}>{error}</div></div></>);
+  if (error) return (<><HiveBackground /><div className="loading"><img src="/logo.png" alt="OneHive" /><div style={{ maxWidth: 420, textAlign: 'center' }}>{error}</div></div></>);
   if (!state) return <><HiveBackground /><div className="loading"><img src="/logo.png" alt="OneHive" /><div>Loading the hive…</div></div></>;
   return <><HiveBackground /><div className="hive" ref={ref} /></>;
 }

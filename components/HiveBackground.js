@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 
 // Animated brand background: small clusters of connected, slim-edged honeycomb cells.
 // The centres stay clear; only the outlines are coloured. A snake trail travels along the
-// shared edges, and each cell it passes switches to the next colour (amber, teal, clay).
+// shared edges as a tiny flying bee with a short trail. Each cell it passes switches to the next colour,
+// and the bee and its trail take on that colour.
 const COLOURS = ['#FCB040', '#2BA7A0', '#D77F5A'];
 const SHAPE = [[0, 0], [1, -1], [1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [2, -1], [-1, 2]]; // axial coords, flat-top
 
@@ -34,6 +35,8 @@ export default function HiveBackground() {
   const [size, setSize] = useState(null);
   const [cols, setCols] = useState({});
   const trailRefs = useRef([]);
+  const beeRefs = useRef([]);
+  const bodyRefs = useRef([]);
 
   useEffect(() => {
     let t;
@@ -54,10 +57,16 @@ export default function HiveBackground() {
     if (!size) return;
     const init = {}; clusters.forEach((c, k) => c.cells.forEach((_, i) => { init[`${k}-${i}`] = (i + k) % 3; }));
     setCols(init);
+    const local = { ...init };
+    const paint = (si, colour) => {
+      const t = trailRefs.current[si]; if (t && t[0]) t[0].setAttribute('stroke', colour);
+      const b = bodyRefs.current[si]; if (b) b.setAttribute('fill', colour);
+    };
+    clusters.forEach((_, k) => paint(k, COLOURS[k % 3]));
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) return;
     const speed = narrow ? 70 : 95; // px per second
-    const trailLen = R * 2.4;
+    const trailLen = R * 1.3;
     const snakes = clusters.map((c, k) => {
       const keys = Object.keys(c.nodes);
       const start = keys[(k * 7) % keys.length];
@@ -80,7 +89,10 @@ export default function HiveBackground() {
           const pick = owners.slice().sort((x, y) => (lastChanged[`${s.k}-${x}`] || 0) - (lastChanged[`${s.k}-${y}`] || 0))[0];
           if (pick !== undefined && pick !== s.lastCell) {
             const id = `${s.k}-${pick}`; lastChanged[id] = ts; s.lastCell = pick;
-            setCols((cc) => ({ ...cc, [id]: ((cc[id] ?? 0) + 1) % 3 }));
+            local[id] = ((local[id] ?? 0) + 1) % 3;
+            const ci = local[id];
+            setCols((cc) => ({ ...cc, [id]: ci }));
+            paint(si, COLOURS[ci]);
           }
           s.hist.push(b); if (s.hist.length > 12) s.hist.shift();
           const options = [...s.c.nodes[s.to].n].filter((n) => n !== s.from);
@@ -99,6 +111,8 @@ export default function HiveBackground() {
         const dd = 'M' + pts.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('L');
         const els = trailRefs.current[si];
         if (els) els.forEach((el) => el && el.setAttribute('d', dd));
+        const bee = beeRefs.current[si];
+        if (bee) bee.setAttribute('transform', `translate(${head[0].toFixed(1)},${head[1].toFixed(1)}) rotate(${(Math.atan2(B[1] - A[1], B[0] - A[0]) * 180 / Math.PI).toFixed(1)}) scale(${narrow ? 0.85 : 1})`);
       });
       raf = requestAnimationFrame(step);
     };
@@ -117,8 +131,16 @@ export default function HiveBackground() {
           {c.cells.map((cell, i) => (
             <polygon key={i} className="hive-hex" points={cell.v.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')} fill="none" strokeWidth={sw} strokeLinejoin="round" style={{ stroke: COLOURS[cols[`${k}-${i}`] ?? (i + k) % 3] }} />
           ))}
-          <path ref={(el) => { (trailRefs.current[k] = trailRefs.current[k] || [])[0] = el; }} d="" fill="none" stroke="#FCB040" strokeOpacity="0.35" strokeWidth={narrow ? 8 : 10} strokeLinecap="round" strokeLinejoin="round" />
-          <path ref={(el) => { (trailRefs.current[k] = trailRefs.current[k] || [])[1] = el; }} d="" fill="none" stroke="#25201D" strokeWidth={narrow ? 3 : 3.5} strokeLinecap="round" strokeLinejoin="round" />
+          <path ref={(el) => { (trailRefs.current[k] = trailRefs.current[k] || [])[0] = el; }} d="" fill="none" stroke={COLOURS[k % 3]} strokeOpacity="0.55" strokeWidth={narrow ? 2.5 : 3} strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1 6" />
+          <g ref={(el) => { beeRefs.current[k] = el; }} className="hive-bee" transform="translate(-50,-50)">
+            <ellipse className="wing wt" cx="-1" cy="-5.5" rx="4.6" ry="3" fill="#ffffff" fillOpacity="0.9" stroke="#25201D" strokeWidth="0.7" />
+            <ellipse className="wing wb" cx="-1" cy="5.5" rx="4.6" ry="3" fill="#ffffff" fillOpacity="0.9" stroke="#25201D" strokeWidth="0.7" />
+            <path d="M-8.5,0 L-6,-1.4 L-6,1.4 Z" fill="#25201D" />
+            <ellipse ref={(el) => { bodyRefs.current[k] = el; }} cx="0" cy="0" rx="6.8" ry="4.2" fill={COLOURS[k % 3]} stroke="#25201D" strokeWidth="0.9" />
+            <rect x="-2.6" y="-4" width="1.6" height="8" fill="#25201D" />
+            <rect x="1" y="-4" width="1.6" height="8" fill="#25201D" />
+            <circle cx="7.6" cy="0" r="2.6" fill="#25201D" />
+          </g>
         </g>
       ))}
     </svg>
