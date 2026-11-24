@@ -351,3 +351,12 @@ button,a,input,label{touch-action:manipulation}
 .hive-bee .wing.wb{transform-origin:50% 0%}
 @keyframes flap{from{transform:scaleY(1)}to{transform:scaleY(.35)}}
 @media (prefers-reduced-motion: reduce){.hive-bee{display:none}}
+
+.hive .req{color:var(--clay);font-weight:600}
+.hive .opt-l{color:var(--muted);font-style:normal;font-weight:400}
+.hive .cvdrop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px dashed var(--line);border-radius:14px;padding:16px;background:var(--ivory);cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
+.hive .cvdrop:hover{border-color:var(--amber)}
+.hive .cvdrop.has{border-style:solid;border-color:var(--teal);background:#eef8f7}
+.hive .cvdrop input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.hive .cvdrop .cvtxt{font-weight:600;font-size:15px;word-break:break-all}
+.hive .cvdrop small{color:var(--muted);font-size:12.5px}

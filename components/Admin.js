@@ -263,6 +263,9 @@ function Detail({ s, cmp, setCmp, others, questions, settings, review, updateRev
               navigator.clipboard.writeText(msg).then(() => { say(`Interview invite for ${s.name} copied. Paste it into an email to ${s.email}.`); if (s.status === 'new' || s.status === 'shortlist') updateReview(s.sid, { status: 'interview' }); }, () => say('Could not copy.', true));
             }}>Copy interview invite</button>
             <button className="b ghost sm" onClick={() => navigator.clipboard.writeText(s.email).then(() => say('Email copied.'))}>Copy email</button>
+            {s.cv ? <a className="b sm" href={`/api/admin/file?id=${encodeURIComponent(s.cv.id)}`}>Download CV</a> : <span className="flag">no CV</span>}
+            {s.linkedin && <a className="b ghost sm" href={s.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>}
+            {s.portfolio && <a className="b ghost sm" href={s.portfolio} target="_blank" rel="noopener noreferrer">Portfolio</a>}
           </div>
         </div>
       </div>
