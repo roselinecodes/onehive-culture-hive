@@ -1,111 +1,125 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 
-// Animated brand background: a few soft-cornered, flat-top hexagons and a snake trail
-// that travels between them. Each hexagon changes colour when the snake reaches it.
+// Animated brand background: small clusters of connected, slim-edged honeycomb cells.
+// The centres stay clear; only the outlines are coloured. A snake trail travels along the
+// shared edges, and each cell it passes switches to the next colour (amber, teal, clay).
 const COLOURS = ['#FCB040', '#2BA7A0', '#D77F5A'];
+const SHAPE = [[0, 0], [1, -1], [1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [2, -1], [-1, 2]]; // axial coords, flat-top
 
-// Positions as fractions of the screen, in the order the snake visits them.
-// Kept to the edges so the hexagons sit around the content, not behind the text.
-const WIDE = [[0.08, 0.16], [0.17, 0.42], [0.07, 0.68], [0.16, 0.9], [0.5, 0.97], [0.85, 0.88], [0.94, 0.62], [0.83, 0.36], [0.93, 0.12]];
-const NARROW = [[0.06, 0.14], [0.94, 0.26], [0.98, 0.58], [0.9, 0.9], [0.1, 0.82], [0.02, 0.48]];
-
-function hexPath(cx, cy, r) {
-  // flat-top hexagon with rounded corners
-  const k = 0.22; // corner softness
-  const pts = [];
-  for (let i = 0; i < 6; i++) { const a = (Math.PI / 180) * (60 * i); pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
-  let d = '';
-  for (let i = 0; i < 6; i++) {
-    const p = pts[i], prev = pts[(i + 5) % 6], next = pts[(i + 1) % 6];
-    const a1 = [p[0] + (prev[0] - p[0]) * k, p[1] + (prev[1] - p[1]) * k];
-    const a2 = [p[0] + (next[0] - p[0]) * k, p[1] + (next[1] - p[1]) * k];
-    d += (i === 0 ? `M${a1[0].toFixed(1)},${a1[1].toFixed(1)}` : `L${a1[0].toFixed(1)},${a1[1].toFixed(1)}`) + `Q${p[0].toFixed(1)},${p[1].toFixed(1)} ${a2[0].toFixed(1)},${a2[1].toFixed(1)}`;
-  }
-  return d + 'Z';
-}
-
-// Smooth closed curve through the points (Catmull-Rom to Bezier), one segment per hop.
-function segments(pts) {
-  const n = pts.length, out = [];
-  for (let i = 0; i < n; i++) {
-    const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
-    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
-    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-    out.push(`C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`);
-  }
-  return out;
+function buildCluster(cx, cy, R, shape) {
+  const s3 = Math.sqrt(3);
+  const cells = shape.map(([q, r]) => {
+    const x = cx + R * 1.5 * q, y = cy + R * s3 * (r + q / 2);
+    const v = []; for (let i = 0; i < 6; i++) { const a = (Math.PI / 180) * (60 * i); v.push([x + R * Math.cos(a), y + R * Math.sin(a)]); }
+    return { x, y, v };
+  });
+  // shared vertex graph
+  const key = (p) => `${Math.round(p[0])}:${Math.round(p[1])}`;
+  const nodes = {}, edges = {};
+  cells.forEach((c, ci) => {
+    c.v.forEach((p, i) => {
+      const q = c.v[(i + 1) % 6];
+      const a = key(p), b = key(q);
+      nodes[a] = nodes[a] || { p, n: new Set() }; nodes[b] = nodes[b] || { p: q, n: new Set() };
+      nodes[a].n.add(b); nodes[b].n.add(a);
+      const ek = a < b ? a + '|' + b : b + '|' + a;
+      (edges[ek] = edges[ek] || []).push(ci);
+    });
+  });
+  return { cells, nodes, edges };
 }
 
 export default function HiveBackground() {
   const [size, setSize] = useState(null);
-  const [cols, setCols] = useState([]);
-  const [pulse, setPulse] = useState(-1);
-  const snakeRefs = [useRef(null), useRef(null)];
-  const measureRef = useRef(null);
+  const [cols, setCols] = useState({});
+  const trailRefs = useRef([]);
 
   useEffect(() => {
     let t;
     const read = () => setSize({ w: window.innerWidth, h: window.innerHeight });
     read();
     const onR = () => { clearTimeout(t); t = setTimeout(read, 200); };
-    window.addEventListener('resize', onR);
-    window.addEventListener('orientationchange', onR);
+    window.addEventListener('resize', onR); window.addEventListener('orientationchange', onR);
     return () => { window.removeEventListener('resize', onR); window.removeEventListener('orientationchange', onR); clearTimeout(t); };
   }, []);
 
   const narrow = size && size.w < 760;
-  const layout = narrow ? NARROW : WIDE;
-  const r = size ? (narrow ? Math.max(30, Math.min(44, size.w * 0.1)) : Math.max(34, Math.min(52, size.w * 0.032))) : 40;
-  const pts = size ? layout.map(([x, y]) => [x * size.w, y * size.h]) : [];
-  const segs = size ? segments(pts) : [];
-  const d = size ? `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}` + segs.join('') : '';
-
-  useEffect(() => { if (size) setCols(layout.map((_, i) => i % 3)); }, [narrow, !!size]); // eslint-disable-line
+  const R = size ? (narrow ? Math.max(26, Math.min(34, size.w * 0.08)) : Math.max(36, Math.min(54, size.w * 0.03))) : 40;
+  // cluster centres, kept to the edges so the content stays clear
+  const centres = size ? (narrow ? [[size.w - R * 0.9, size.h * 0.1], [R * 0.9, size.h * 0.88]] : [[Math.min(size.w * 0.11, 200), size.h * 0.38], [size.w - Math.min(size.w * 0.11, 200), size.h * 0.66]]) : [];
+  const clusters = size ? centres.map(([x, y], k) => buildCluster(x, y, R, k ? SHAPE.map(([q, r]) => [-q, -r]) : SHAPE)) : [];
 
   useEffect(() => {
-    if (!size || !measureRef.current) return;
+    if (!size) return;
+    const init = {}; clusters.forEach((c, k) => c.cells.forEach((_, i) => { init[`${k}-${i}`] = (i + k) % 3; }));
+    setCols(init);
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // cumulative length to each hexagon
-    const p = measureRef.current;
-    const cum = []; let acc = 0;
-    for (let i = 0; i < segs.length; i++) {
-      p.setAttribute('d', `M${pts[i][0]},${pts[i][1]}${segs[i]}`);
-      acc += p.getTotalLength(); cum.push(acc);
-    }
-    const total = acc;
-    const nodeAt = cum.map((c, i) => ({ i: (i + 1) % pts.length, at: i === segs.length - 1 ? 0 : c }));
-    const snakeLen = Math.min(total * 0.18, narrow ? 220 : 340);
-    snakeRefs.forEach((s) => { if (s.current) s.current.style.strokeDasharray = `${snakeLen} ${total - snakeLen}`; });
-    if (reduce) { snakeRefs.forEach((s) => { if (s.current) s.current.style.strokeDashoffset = `${snakeLen}`; }); return; }
-    const speed = narrow ? 85 : 130; // px per second
-    let raf, start = null, prev = 0, paused = false;
-    const tick = (ts) => {
+    if (reduce) return;
+    const speed = narrow ? 70 : 95; // px per second
+    const trailLen = R * 2.4;
+    const snakes = clusters.map((c, k) => {
+      const keys = Object.keys(c.nodes);
+      const start = keys[(k * 7) % keys.length];
+      const nb = [...c.nodes[start].n];
+      return { k, c, from: start, to: nb[0], t: 0, hist: [c.nodes[start].p], lastCell: -1 };
+    });
+    const lastChanged = {};
+    let raf, last = null, paused = false;
+    const step = (ts) => {
       if (paused) return;
-      if (start === null) start = ts - prev / speed * 1000;
-      const head = (((ts - start) / 1000) * speed) % total;
-      snakeRefs.forEach((s) => { if (s.current) s.current.style.strokeDashoffset = `${-(head - snakeLen)}`; });
-      for (const n of nodeAt) {
-        const crossed = prev <= head ? n.at > prev && n.at <= head : n.at > prev || n.at <= head;
-        if (crossed) { setCols((c) => { const x = c.slice(); x[n.i] = (x[n.i] + 1) % 3; return x; }); setPulse(n.i); }
-      }
-      prev = head;
-      raf = requestAnimationFrame(tick);
+      const dt = last === null ? 0 : Math.min(0.05, (ts - last) / 1000); last = ts;
+      snakes.forEach((s, si) => {
+        const a = s.c.nodes[s.from].p, b = s.c.nodes[s.to].p;
+        const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+        s.t += (speed * dt) / len;
+        if (s.t >= 1) {
+          // arrived at a corner: recolour the cell this edge belongs to, then pick the next edge
+          const ek = s.from < s.to ? s.from + '|' + s.to : s.to + '|' + s.from;
+          const owners = s.c.edges[ek] || [];
+          const pick = owners.slice().sort((x, y) => (lastChanged[`${s.k}-${x}`] || 0) - (lastChanged[`${s.k}-${y}`] || 0))[0];
+          if (pick !== undefined && pick !== s.lastCell) {
+            const id = `${s.k}-${pick}`; lastChanged[id] = ts; s.lastCell = pick;
+            setCols((cc) => ({ ...cc, [id]: ((cc[id] ?? 0) + 1) % 3 }));
+          }
+          s.hist.push(b); if (s.hist.length > 12) s.hist.shift();
+          const options = [...s.c.nodes[s.to].n].filter((n) => n !== s.from);
+          const next = options[Math.floor(Math.random() * options.length)] || s.from;
+          s.from = s.to; s.to = next; s.t = 0;
+        }
+        const A = s.c.nodes[s.from].p, B = s.c.nodes[s.to].p;
+        const head = [A[0] + (B[0] - A[0]) * s.t, A[1] + (B[1] - A[1]) * s.t];
+        // build the trail backwards from the head
+        const pts = [head]; let remain = trailLen; let cur = head;
+        for (let i = s.hist.length - 1; i >= 0 && remain > 0; i--) {
+          const p = s.hist[i]; const d = Math.hypot(cur[0] - p[0], cur[1] - p[1]);
+          if (d >= remain) { const f = remain / (d || 1); pts.push([cur[0] + (p[0] - cur[0]) * f, cur[1] + (p[1] - cur[1]) * f]); remain = 0; }
+          else { pts.push(p); remain -= d; cur = p; }
+        }
+        const dd = 'M' + pts.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('L');
+        const els = trailRefs.current[si];
+        if (els) els.forEach((el) => el && el.setAttribute('d', dd));
+      });
+      raf = requestAnimationFrame(step);
     };
-    raf = requestAnimationFrame(tick);
-    const onVis = () => { if (document.hidden) { paused = true; cancelAnimationFrame(raf); } else { paused = false; start = null; raf = requestAnimationFrame(tick); } };
+    raf = requestAnimationFrame(step);
+    const onVis = () => { if (document.hidden) { paused = true; cancelAnimationFrame(raf); } else { paused = false; last = null; raf = requestAnimationFrame(step); } };
     document.addEventListener('visibilitychange', onVis);
     return () => { cancelAnimationFrame(raf); document.removeEventListener('visibilitychange', onVis); };
   }, [size && size.w, size && size.h]); // eslint-disable-line
 
   if (!size) return null;
+  const sw = narrow ? 2 : 2.5;
   return (
     <svg className="hive-bg" width={size.w} height={size.h} viewBox={`0 0 ${size.w} ${size.h}`} aria-hidden="true">
-      <path ref={measureRef} d="" fill="none" stroke="none" />
-      <path ref={snakeRefs[0]} d={d} fill="none" stroke="#FCB040" strokeOpacity="0.35" strokeWidth={narrow ? 9 : 12} strokeLinecap="round" strokeLinejoin="round" />
-      <path ref={snakeRefs[1]} d={d} fill="none" stroke="#25201D" strokeWidth={narrow ? 3 : 4} strokeLinecap="round" strokeLinejoin="round" />
-      {pts.map(([x, y], i) => (
-        <path key={i} d={hexPath(x, y, r)} className={'hive-hex' + (pulse === i ? ' pulse' : '')} style={{ fill: COLOURS[cols[i] ?? i % 3] }} onAnimationEnd={() => setPulse(-1)} />
+      {clusters.map((c, k) => (
+        <g key={k}>
+          {c.cells.map((cell, i) => (
+            <polygon key={i} className="hive-hex" points={cell.v.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')} fill="none" strokeWidth={sw} strokeLinejoin="round" style={{ stroke: COLOURS[cols[`${k}-${i}`] ?? (i + k) % 3] }} />
+          ))}
+          <path ref={(el) => { (trailRefs.current[k] = trailRefs.current[k] || [])[0] = el; }} d="" fill="none" stroke="#FCB040" strokeOpacity="0.35" strokeWidth={narrow ? 8 : 10} strokeLinecap="round" strokeLinejoin="round" />
+          <path ref={(el) => { (trailRefs.current[k] = trailRefs.current[k] || [])[1] = el; }} d="" fill="none" stroke="#25201D" strokeWidth={narrow ? 3 : 3.5} strokeLinecap="round" strokeLinejoin="round" />
+        </g>
       ))}
     </svg>
   );
