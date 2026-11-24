@@ -1,6 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { QUESTION_TYPES } from '@/lib/defaults';
+import { QUESTION_TYPES, QUESTION_LIBRARY } from '@/lib/defaults';
 import { publicQuestion } from '@/lib/public';
 import Challenge from './Challenge';
 
@@ -19,6 +19,7 @@ function template(type) {
     case 'matrix': return { ...base, cols: ['Tool A', 'Tool B', 'Tool C'], rows: [{ id: uid(), t: 'Job one', correct: 'Tool A' }, { id: uid(), t: 'Job two', correct: 'Tool B' }] };
     case 'pattern': return { ...base, puzzles: [] };
     case 'written': return { ...base, limit: 240, minWords: 25, maxWords: 150, rubric: '5 = excellent\n3 = adequate\n1 = poor' };
+    case 'link': return { ...base, limit: 900, linkLabel: 'Share link', rubric: '5 = excellent\n3 = adequate\n1 = poor' };
     default: return base;
   }
 }
@@ -31,6 +32,7 @@ export default function QuestionEditor({ initial, settings, roleId, onSaved, say
   const [preview, setPreview] = useState(null);
   const [addType, setAddType] = useState('steps');
   const [json, setJson] = useState(false);
+  const [lib, setLib] = useState(false);
   const idx = qs.findIndex((q) => q.id === sel);
   const q = qs[idx];
 
@@ -70,6 +72,24 @@ export default function QuestionEditor({ initial, settings, roleId, onSaved, say
             <select value={addType} onChange={(e) => setAddType(e.target.value)}>{Object.entries(QUESTION_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
             <button className="b sm" onClick={() => { const t = template(addType); mut((n) => { n.push(t); }); setSel(t.id); }}>Add</button>
           </div>
+        </div>
+        <div className="sec" style={{ marginTop: 14 }}>
+          <button className="b teal sm" onClick={() => setLib(!lib)}>{lib ? 'Hide the library' : 'Add from library'}</button>
+          {lib && (() => {
+            const have = new Set(qs.map((x) => x.id.replace(/-[a-z0-9]{4}$/, '')));
+            const avail = QUESTION_LIBRARY.filter((x) => !have.has(x.id));
+            return (<div style={{ marginTop: 8 }}>
+              {!avail.length && <p className="help">Every library question is already in this role.</p>}
+              {avail.map((x) => (
+                <div key={x.id} className="qitem" style={{ gridTemplateColumns: '1fr auto', cursor: 'default' }}>
+                  <div style={{ minWidth: 0 }}><div className="qt">{x.title}{x.id.startsWith('k') && <span className="tag new">content</span>}</div><div className="qs">{QUESTION_TYPES[x.type]} · {x.limit}s</div></div>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button className="b ghost sm" onClick={() => setPreview([publicQuestion(x)])}>Preview</button>
+                    <button className="b sm" onClick={() => { const c = clone(x); c.enabled = true; c.isNew = true; if (!settings.pillars.some((p) => p.id === c.pillar)) c.pillar = settings.pillars[settings.pillars.length - 1].id; mut((n) => { n.push(c); }); setSel(c.id); say(`Added “${c.title}”. Click Save all changes to put it live.`); }}>Add</button>
+                  </div>
+                </div>))}
+            </div>);
+          })()}
         </div>
         <div className="sec" style={{ marginTop: 14 }}>
           <button className="b ghost sm" disabled={!enabled.length} onClick={() => setPreview(enabled.map(publicQuestion))}>Preview the whole challenge</button>
@@ -235,6 +255,12 @@ function TypeEditor({ q, upd }) {
           <label className="f"><span>Maximum words</span><input type="number" value={q.maxWords} onChange={(e) => upd((x) => { x.maxWords = Number(e.target.value); })} /></label>
         </div>
         <label className="f"><span>Scoring rubric for Claude (1 to 5)</span><textarea rows={6} value={q.rubric || ''} onChange={(e) => upd((x) => { x.rubric = e.target.value; })} /></label>
+      </>);
+    case 'link':
+      return (<>
+        <p className="help">Candidates paste a share link (for example Canva, Google Drive or a video) to something they make during the timer. They can leave the page for this cell only. You score it yourself in the candidate view.</p>
+        <label className="f"><span>Label above the link box</span><input type="text" value={q.linkLabel || ''} onChange={(e) => upd((x) => { x.linkLabel = e.target.value; })} /></label>
+        <label className="f"><span>How to score it (shown to you, not candidates)</span><textarea rows={4} value={q.rubric || ''} onChange={(e) => upd((x) => { x.rubric = e.target.value; })} /></label>
       </>);
     default:
       return <p className="help">Use &quot;Edit as JSON&quot; for this type.</p>;

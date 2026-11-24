@@ -6,7 +6,7 @@ A hiring system with one gamified challenge per role and an admin area that scor
 - `/` lists the roles that are currently open.
 - `/admin` is the admin area, protected by one password. Pick a role at the top, then use the tabs:
   - **Candidates:** ranking, the top three, scores, integrity flags, hiring stage, notes, Claude scoring, a copy-ready interview invite with your booking link, CSV export, and a compare report that prints to PDF.
-  - **Questions:** add, edit, reorder, duplicate, switch on and off, and preview questions.
+  - **Questions:** add, edit, reorder, duplicate, switch on and off, and preview questions. **Add from library** adds ready-made questions in one click, including five content-creation cells (Fix the post, Plan the week, Read the numbers, Write the caption, and Make it in 15 minutes, where candidates paste a Canva link that you score yourself).
   - **Role settings:** name, link, Draft/Open/Closed status, closing date, booking link and invite message, welcome text, culture areas and weights, fit bands.
   - **All roles:** every role with its numbers. Create a new role by drafting it with Claude from a job description, copying an existing role, or starting blank. New roles start as drafts, so nobody can take them until you set them to Open.
 - `/admin/report` is the printable comparison of the candidates you tick (or the top three).
@@ -69,6 +69,7 @@ Every question scores 0 to 100%:
 | Two-way sort, Matrix, Pattern puzzles | The share they got right |
 | Multiple choice | Points earned out of the best possible. An optional slider can take a share of the score |
 | Written answer | Claude's 1 to 5 score against your rubric, or your own score, which overrides Claude's |
+| Make it (paste a link) | Your own 1 to 5 score in the candidate view. Leaving the page is not recorded for this cell, so they can work in Canva |
 
 Questions roll up into culture areas, using each question's weight within its area. The areas then average into the overall fit score, using the area weights in Settings. Bands: Strong fit, Promising, Mixed and Not a fit (thresholds are set in Settings).
 

@@ -242,7 +242,7 @@ function Detail({ s, cmp, setCmp, others, questions, settings, review, updateRev
   if (cmp) sets.push({ s: cmp, c: C.blue, o: 0.12 });
   sets.push({ s, c: b.c === '#a99c8f' ? C.clay : C.amber, o: 0.38 });
   const qs = questions.filter((q) => q.enabled || s.cells[q.id]);
-  const written = qs.filter((q) => q.type === 'written');
+  const written = qs.filter((q) => q.type === 'written' || q.type === 'link');
   const [notes, setNotes] = useState(review.notes || '');
   useEffect(() => { setNotes(review.notes || ''); }, [s.sid]); // eslint-disable-line
   const setW = (qid, patch) => updateReview(s.sid, { written: { ...(review.written || {}), [qid]: { ...((review.written || {})[qid] || {}), ...patch } } });
@@ -294,20 +294,23 @@ function Detail({ s, cmp, setCmp, others, questions, settings, review, updateRev
           {qs.map((q) => { const c = s.cells[q.id]; const v = s.sc[q.id]; const pc = v == null ? null : Math.round(v * 100); return (
             <tr key={q.id}>
               <td><b>{q.title}</b><span className="tag">{(settings.pillars.find((p) => p.id === q.pillar) || {}).name || 'No area'}</span>{c && c.a.timed_out && <span className="tag">timed out</span>}<div className="what">{explain(q, c && c.a, review)}</div></td>
-              <td className="sc">{pc == null ? <span style={{ color: '#6f655d' }}>{q.type === 'written' && c ? 'needs scoring' : '–'}</span> : <><div style={{ fontSize: 12.5, fontWeight: 600 }}>{pc}%</div><div className="bar"><i style={{ width: pc + '%', background: band(pc, settings.bands).c }} /></div></>}</td>
+              <td className="sc">{pc == null ? <span style={{ color: '#6f655d' }}>{(q.type === 'written' || q.type === 'link') && c ? 'needs scoring' : '–'}</span> : <><div style={{ fontSize: 12.5, fontWeight: 600 }}>{pc}%</div><div className="bar"><i style={{ width: pc + '%', background: band(pc, settings.bands).c }} /></div></>}</td>
               <td className="t">{c ? fmtT(c.sec) + ' / ' + fmtT(q.limit) : '–'}</td>
             </tr>); })}
         </tbody></table>
       </div>
       {written.map((q) => { const w = s.cells[q.id] && s.cells[q.id].a; const rv = (review.written || {})[q.id] || {}; return (
-        <div className="sec" key={q.id}><h4>{q.title}, in their words</h4>
-          {w && w.text ? <div className="written">{w.text}</div> : <div className="written" style={{ color: '#6f655d' }}>No written answer.</div>}
+        <div className="sec" key={q.id}><h4>{q.type === 'link' ? q.title + ', what they made' : q.title + ', in their words'}</h4>
+          {q.type === 'link'
+            ? (w && w.url ? <div className="written"><a href={w.url} target="_blank" rel="noopener noreferrer">{w.url}</a>{w.note ? `\n${w.note}` : ''}</div> : <div className="written" style={{ color: '#6f655d' }}>No link submitted.</div>)
+            : (w && w.text ? <div className="written">{w.text}</div> : <div className="written" style={{ color: '#6f655d' }}>No written answer.</div>)}
+          {q.type === 'link' && q.rubric && <div className="help" style={{ marginTop: 6 }}>{q.rubric}</div>}
           {rv.ai && <div className="ai"><b>{rv.ai}/5</b><div><div style={{ fontSize: 13.5 }}>{rv.reason}</div><div style={{ fontSize: 12, color: '#6f655d', marginTop: 3 }}>Claude’s score · chance it was AI-written: {rv.likelihood || 'unknown'}</div></div></div>}
-          {w && w.text && (
+          {w && (w.text || w.url) && (
             <div className="overr">Your score:
               {[1, 2, 3, 4, 5].map((k) => <button key={k} className={rv.manual === k ? 'on' : ''} onClick={() => setW(q.id, { manual: rv.manual === k ? null : k })}>{k}</button>)}
               <span style={{ color: '#6f655d' }}>{rv.manual ? 'Overrides Claude. Tap again to clear.' : 'Optional, overrides Claude'}</span>
-              {canAI && <button className="b ghost sm" style={{ width: 'auto', height: 'auto' }} onClick={scoreOne} disabled={scoring}>{rv.ai ? 'Re-score with Claude' : 'Score with Claude'}</button>}
+              {canAI && q.type === 'written' && <button className="b ghost sm" style={{ width: 'auto', height: 'auto' }} onClick={scoreOne} disabled={scoring}>{rv.ai ? 'Re-score with Claude' : 'Score with Claude'}</button>}
             </div>
           )}
         </div>); })}
