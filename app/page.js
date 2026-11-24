@@ -1,10 +1,13 @@
 import { getRoles, roleIsOpen } from '@/lib/store';
+import HiveBackground from '@/components/HiveBackground';
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   let roles = [], problem = '';
   try { roles = (await getRoles()).filter(roleIsOpen); } catch (e) { problem = 'The challenges are not available just now. Please try again later.'; console.error(e); }
   return (
+    <>
+    <HiveBackground />
     <div className="hive">
       <div className="top"><img className="logo" src="/logo.png" alt="OneHive" /></div>
       <div className="card hero">
@@ -19,5 +22,6 @@ export default async function Home() {
         )) : <p className="lead">{problem || 'There are no open challenges right now.'}</p>}
       </div>
     </div>
+    </>
   );
 }

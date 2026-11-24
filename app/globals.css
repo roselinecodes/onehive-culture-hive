@@ -299,3 +299,39 @@ a{color:var(--teal)}
 .rep .bar i{display:block;height:100%;border-radius:5px}
 .rep .noprint{margin-bottom:14px;display:flex;gap:8px}
 @media print{.rep .noprint{display:none}body{background:#fff}.rep{padding:0}@page{size:A4;margin:12mm}}
+
+/* ================= Animated background + mobile ================= */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,input,label{touch-action:manipulation}
+.hive-bg{position:fixed;inset:0;z-index:0;pointer-events:none;display:block}
+.hive-hex{opacity:.92;transition:fill .7s ease;transform-box:fill-box;transform-origin:center}
+.hive-hex.pulse{animation:hexpulse .7s ease}
+@keyframes hexpulse{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){.hive-hex{transition:none}.hive-hex.pulse{animation:none}}
+.hive,.loading{position:relative;z-index:1}
+.hive{min-height:100vh;min-height:100dvh;padding-top:max(16px,env(safe-area-inset-top))}
+.hive .top{background:rgba(255,248,240,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);margin:0 -16px;padding-left:16px;padding-right:16px;border-radius:0 0 16px 16px}
+.foot{padding-bottom:calc(16px + env(safe-area-inset-bottom));background:linear-gradient(rgba(255,248,240,0),rgba(255,248,240,.96) 40%)}
+.toast{bottom:calc(96px + env(safe-area-inset-bottom))}
+.hive .card{box-shadow:0 1px 0 var(--line),0 18px 40px -22px rgba(37,32,29,.45)}
+@media (max-width:420px){
+  .hive{padding-left:12px;padding-right:12px}
+  .hive .top{margin:0 -12px;padding-left:12px;padding-right:12px}
+  .hive .card{padding:18px 15px;border-radius:20px}
+  .hive h1{font-size:26px}
+  .hive h2{font-size:21px}
+  .hive .lead{font-size:15px}
+  .hive .tile{padding:12px 12px 12px 48px;font-size:15px}
+  .hive .opt{padding:13px 14px;font-size:15px}
+  .hive .seq svg{width:56px;height:56px}
+  .hive .q{width:56px;height:56px;font-size:24px}
+  .hive .popts{gap:6px}
+  .hive .scard{font-size:18px;padding:20px}
+  .hive .stack{height:210px}
+  .btn{padding:13px 22px}
+  .foot .in .hint{font-size:12px}
+}
+@media (max-width:760px){
+  .hive .card{background:rgba(255,255,255,.86)}
+  .hive .card .field input,.hive .card textarea{background:rgba(255,248,240,.92)}
+}

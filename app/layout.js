@@ -5,7 +5,7 @@ export const metadata = {
   description: 'OneHive culture fit challenge',
   icons: { icon: '/mark.png' },
 };
-export const viewport = { width: 'device-width', initialScale: 1, themeColor: '#FFF8F0' };
+export const viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover', themeColor: '#FFF8F0' };
 
 export default function RootLayout({ children }) {
   return (

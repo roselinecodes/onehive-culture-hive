@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import HiveBackground from './HiveBackground';
 
 export default function Challenge({ slug, questions: given, intro: givenIntro, role: givenRole, preview = false }) {
   const ref = useRef(null);
@@ -22,7 +23,8 @@ export default function Challenge({ slug, questions: given, intro: givenIntro, r
     return () => { live = false; destroy(); };
   }, [state, preview]);
 
-  if (error) return (<div className="loading"><img src="/logo.png" alt="OneHive" /><img src="/squiggle.png" alt="" style={{ width: 260 }} /><div style={{ maxWidth: 420, textAlign: 'center' }}>{error}</div></div>);
-  if (!state) return <div className="loading"><img src="/logo.png" alt="OneHive" /><div>Loading the hive…</div></div>;
-  return <div className="hive" ref={ref} />;
+  if (preview) return <div className="hive" ref={ref} />;
+  if (error) return (<><HiveBackground /><div className="loading"><img src="/logo.png" alt="OneHive" /><img src="/squiggle.png" alt="" style={{ width: 260 }} /><div style={{ maxWidth: 420, textAlign: 'center' }}>{error}</div></div></>);
+  if (!state) return <><HiveBackground /><div className="loading"><img src="/logo.png" alt="OneHive" /><div>Loading the hive…</div></div></>;
+  return <><HiveBackground /><div className="hive" ref={ref} /></>;
 }
