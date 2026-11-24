@@ -351,6 +351,13 @@ function RoleSettings({ role, onSaved, say }) {
         </div>
         <label className="f"><span>Interview booking link (e.g. the CEO&apos;s Motion link)</span><input type="text" value={st.bookingLink || ''} placeholder="https://" onChange={(e) => set((n) => { n.bookingLink = e.target.value; })} /></label>
         <label className="f"><span>Interview invite message. Use {'{first}'}, {'{role}'} and {'{link}'}</span><textarea rows={6} value={st.inviteMessage || ''} onChange={(e) => set((n) => { n.inviteMessage = e.target.value; })} /></label>
+        <div className="f"><span style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#6f655d', marginBottom: 4 }}>Job description shown to candidates (Word or PDF)</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span className="hint">{st.jdName || (st.id === 'ea-ops' ? 'Using the built-in Word document' : 'None uploaded')}</span>
+            <a className="b ghost sm" href={`/api/jd/file?role=${encodeURIComponent(st.slug)}`} target="_blank" rel="noopener">Download current</a>
+            <label className="b ghost sm" style={{ cursor: 'pointer' }}>Upload new<input type="file" accept=".docx,.pdf" style={{ display: 'none' }} onChange={async (e) => { const f = e.target.files[0]; if (!f) return; const fd = new FormData(); fd.append('file', f); fd.append('role_id', st.id); const r = await fetch('/api/admin/jd', { method: 'POST', body: fd }); const j = await r.json().catch(() => ({})); if (r.ok) { set((n) => { n.jdFileId = j.role.jdFileId; n.jdName = j.role.jdName; }); onSaved({ ...st, jdFileId: j.role.jdFileId, jdName: j.role.jdName }); say('Job description uploaded. Candidates see it straight away.'); } else say(j.error || 'Upload failed.', true); }} /></label>
+          </div>
+        </div>
         <label className="f"><span>Role description (helps Claude score written answers)</span><textarea rows={3} value={st.description || ''} onChange={(e) => set((n) => { n.description = e.target.value; })} /></label>
       </div>
       <div className="panel">

@@ -360,3 +360,24 @@ button,a,input,label{touch-action:manipulation}
 .hive .cvdrop input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .hive .cvdrop .cvtxt{font-weight:600;font-size:15px;word-break:break-all}
 .hive .cvdrop small{color:var(--muted);font-size:12.5px}
+
+.hive .jdbtn{display:flex;align-items:center;gap:8px;width:100%;justify-content:center;border:2px solid var(--teal);background:#eef8f7;color:#17605b;border-radius:14px;padding:12px 14px;font-weight:600;font-size:15px;margin:0 0 16px}
+.hive .jdbtn:hover{background:#e1f4f3}
+.jd-ov{position:fixed;inset:0;z-index:80;background:rgba(37,32,29,.55);display:flex;align-items:center;justify-content:center;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+.jd-box{background:#fff;border-radius:20px;width:100%;max-width:760px;max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 60px -20px rgba(0,0,0,.5)}
+.jd-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+.jd-head img{height:28px}
+.jd-x{border:0;background:var(--soft);width:34px;height:34px;border-radius:50%;font-size:14px}
+.jd-body{overflow:auto;padding:18px 22px;font-size:15px;line-height:1.55;-webkit-overflow-scrolling:touch}
+.jd-body h1,.jd-body h2{font-size:19px;margin:18px 0 6px;font-weight:600}
+.jd-body h3{font-size:16px;margin:14px 0 4px;color:var(--teal);font-weight:600}
+.jd-body p{margin:0 0 10px}
+.jd-body ul{padding-left:20px;margin:0 0 10px}
+.jd-body li{margin:0 0 5px}
+.jd-body table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:14px}
+.jd-body td{border:1px solid var(--line);padding:7px 9px;vertical-align:top}
+.jd-body td:first-child{background:#fff4dc;font-weight:600;width:32%}
+.jd-body a{color:var(--teal);word-break:break-all}
+.jd-foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line);background:var(--ivory)}
+.jd-foot .btn{padding:11px 18px;font-size:15px;text-decoration:none}
+@media (max-width:420px){.jd-foot .btn{flex:1}}
