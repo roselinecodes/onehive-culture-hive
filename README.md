@@ -4,7 +4,7 @@ A hiring system with one gamified challenge per role and an admin area that scor
 
 - `/c/<role-link>` is the public challenge for one role. Post this link on LinkedIn. Each email can complete each role once.
 - `/` lists the roles that are currently open.
-- `/admin` is the admin area, protected by one password. Pick a role at the top, then use the tabs:
+- `/admin` is the admin area. Sign in with the admin email and password. Sessions expire after 12 hours, and repeated wrong attempts are blocked for 15 minutes. Pick a role at the top, then use the tabs:
   - **Candidates:** ranking, the top three, scores, integrity flags, hiring stage, notes, Claude scoring, a copy-ready interview invite with your booking link, CSV export, and a compare report that prints to PDF.
   - **Questions:** add, edit, reorder, duplicate, switch on and off, and preview questions. **Add from library** adds ready-made questions in one click, including five content-creation cells (Fix the post, Plan the week, Read the numbers, Write the caption, and Make it in 15 minutes, where candidates paste a Canva link that you score yourself).
   - **Role settings:** name, link, Draft/Open/Closed status, closing date, booking link and invite message, welcome text, culture areas and weights, fit bands.
@@ -37,8 +37,8 @@ If both are set, the Neon database is used.
 
 | Name | Value |
 | --- | --- |
-| `ADMIN_PASSWORD` | The password for `/admin` |
-| `SESSION_SECRET` | Any long random string |
+| `SESSION_SECRET` | Any long random string. Signs the admin login session |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Optional. Set both to change the admin login |
 | `ANTHROPIC_API_KEY` | A key from console.anthropic.com, for scoring written answers |
 | `ANTHROPIC_MODEL` | Optional. Defaults to `claude-sonnet-5-5` |
 
@@ -56,7 +56,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000. With no storage variables set, answers save to `.data/db.json` on your computer. This only works locally. On Vercel the admin side tells you to connect storage. The default admin password locally is `onehive-local`.
+Open http://localhost:3000. With no storage variables set, answers save to `.data/db.json` on your computer. This only works locally. On Vercel the admin side tells you to connect storage.
 
 ## How scoring works
 
