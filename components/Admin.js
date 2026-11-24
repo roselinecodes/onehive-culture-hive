@@ -345,6 +345,10 @@ function RoleSettings({ role, onSaved, say }) {
           <label className="f"><span>Status</span><select value={st.status} onChange={(e) => set((n) => { n.status = e.target.value; })}><option value="draft">Draft (link does not work)</option><option value="open">Open (taking entries)</option><option value="closed">Closed</option></select></label>
           <label className="f"><span>Closing date (optional)</span><input type="date" value={st.closesAt || ''} onChange={(e) => set((n) => { n.closesAt = e.target.value; })} /></label>
         </div>
+        <div className="frow" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          <label className="f"><span>Who contacts candidates (shown when they finish)</span><input type="text" value={st.contactName ?? 'Rosie'} onChange={(e) => set((n) => { n.contactName = e.target.value; })} /></label>
+          <label className="f"><span>Their email</span><input type="text" value={st.contactEmail ?? 'roseline@onehive.ai'} onChange={(e) => set((n) => { n.contactEmail = e.target.value; })} /></label>
+        </div>
         <label className="f"><span>Interview booking link (e.g. the CEO&apos;s Motion link)</span><input type="text" value={st.bookingLink || ''} placeholder="https://" onChange={(e) => set((n) => { n.bookingLink = e.target.value; })} /></label>
         <label className="f"><span>Interview invite message. Use {'{first}'}, {'{role}'} and {'{link}'}</span><textarea rows={6} value={st.inviteMessage || ''} onChange={(e) => set((n) => { n.inviteMessage = e.target.value; })} /></label>
         <label className="f"><span>Role description (helps Claude score written answers)</span><textarea rows={3} value={st.description || ''} onChange={(e) => set((n) => { n.description = e.target.value; })} /></label>
